@@ -1,0 +1,277 @@
+###################################################################
+#
+# Default input file to run the GMRT CASA Pipeline
+# It defines all parameters used in the pipeline
+# (all parameters can be customized later on).
+#
+# New parameters can be defined in the input file that are not present
+# here (because in that case the pipeline is using the default ones
+# in CASA.
+#
+# Version: 0.0a
+# Date: 2019 Feb 27
+# Under heavy development
+#
+###################################################################
+
+[DEFAULT]
+# Section containing all general parameters that the pipeline may use.
+
+# if a multiple pass experiment then append the pass number to the experiment
+codename = ''
+msfile = ''
+
+# refant is a prioritised list of reference antennas
+ref_ant = '25'
+
+# plotref is a list of antennas, baselines to which will be plotted.
+#plotref = EF
+
+# bpass is a list of sources for bandpass calibration
+bpass = None
+
+# phaseref and target must be set if phase referencing. Each source in target
+# list will be phase calibrated by the corresponding source in phaseref list.
+phaseref = None
+target = None
+
+# sources to consider. defaults to all sources in the SU table.
+sources = None
+
+# spw to keep after split. Will be used also for flagging
+spw = ''
+
+timerange = ''
+
+# directories default to $IN/<experiment>, $OUT/<experiment>,
+# $PIPEFITS/<experiment>
+indir = None #'/jop21_2/reynolds/evnpipe/test/fits/'
+outdir = None # '/jop21_2/reynolds/evnpipe/test/out/'
+
+# sciter is the no of iterations of selfcal - defaults to 2 (0 is a valid
+# input, not default)
+pcycles = 5
+apcycles = 2
+
+
+# Solint to use during the first self calibration cycle, in min
+solint = 10
+
+
+# doplot defaults to 1
+doplot = True
+showgui = False
+
+logger = '%(outdir)s/pipeline.log'
+
+# Something about cores and casa running?
+
+
+[flagging]
+
+doclip = True
+dotfcrop = True
+dorflag = True
+doextend = True
+doaoflagger = True
+
+
+[flag_clip]
+
+mode ='clip'
+spw = %(spw)s
+timerange = %(timerange)s
+clipminmax = [0.0, 100.0]
+clipoutside = True
+clipzeros = True
+extendpols = False
+action = 'apply'
+flagbackup = True
+savepars = False
+overwrite = True
+writeflags = True
+
+
+[flag_tfcrop]
+
+mode = 'tfcrop'
+spw = %(spw)s
+timerange = %(timerange)s
+ntime = 'scan'
+timecutoff = 5.0
+freqcutoff = 4.0
+timefit = 'line'
+freqfit = 'line'
+flagdimension = 'freqtime'
+extendflags = False
+timedevscale = 5.0
+freqdevscale = 5.0
+extendpols = True
+growaround = False
+action = 'apply'
+flagbackup = True
+overwrite = True
+writeflags = True
+
+
+[flag_rflag]
+
+mode = 'rflag'
+spw = %(spw)s
+timerange = %(timerange)s
+timecutoff = 5.0
+freqcutoff = 5.0
+timefit = 'line'
+freqfit = 'line'
+flagdimension = 'freqtime'
+extendflags = False
+timedevscale = 6.0
+freqdevscale = 6.0
+spectralmax = 500.0
+extendpols = True
+growaround = False
+flagneartime = False
+flagnearfreq = False
+action = 'apply'
+flagbackup = True
+overwrite = True
+writeflags = True
+
+
+[flag_extend]
+
+mode = 'extend'
+spw = %(spw)s
+timerange = %(timerange)s
+clipzeros = True
+ntime = 'scan'
+extendflags = False
+extendpols = False
+growtime = 80.0
+growaround = False
+flagneartime = False
+flagnearfreq = False
+action = 'apply'
+flagbackup = True
+overwrite = True
+writeflags = True
+
+
+[flag_aoflagger]
+
+doflag = False
+
+
+
+
+[setjy]
+
+spw = %(spw)s
+timerange = %(timerange)s
+standard = 'Perley-Butler 2013'
+scalebychan = True
+
+
+[gaincal_K]
+
+timerange = %(timerange)s
+refant = %(ref_ant)s
+minblperant = 6
+solnorm = True
+gaintype = 'K'
+solint = '10min'
+combine = 'scan'
+minsnr = 1.0
+parang = True
+append = False
+
+
+[gaincal_G]
+
+timerange = %(timerange)s
+refant = %(ref_ant)s
+minblperant = 5
+solnorm = False
+gaintype = 'G'
+solint = 'inf'
+combine = ''
+minsnr = 1.0
+uvrange = '>0.5klambda'
+parang = True
+append = False
+
+
+[bpass]
+
+spw = %(spw)s
+solint = 'inf'
+refant = %(ref_ant)s
+bandtype = 'B'
+minsnr = 1.0
+minblperant = 6
+solnorm = True
+fillgaps = 8
+append = False
+parang = True
+
+
+[fluxscale]
+
+timerange = %(timerange)s
+listfile = %(outdir)s'/'%(codename)s'.fluxscale0.txt'
+append = False
+
+
+[applycal]
+
+spw = %(spw)s
+timerange = %(timerange)s
+selectdata = False
+calwt = False
+parang = True
+
+
+[split]
+
+spw = %(spw)s
+timerange = %(timerange)s
+datacolumn = 'corrected'
+
+
+[tclean]
+
+imsize = 5880
+cell = '1.0arcsec'
+gridder = 'widefield'
+wprojplanes = -1
+aterm = True
+pblimit = -1
+deconvolver = 'mtmfs'
+nterms = 2
+smallscalebias = 0.6
+restoration = True
+pbcor = False
+weighting = 'briggs'
+robust = 0.0
+uvtaper = []
+niter = 10000
+gain = 0.1
+cyclefactor = 2.0
+minpsffraction = 0.05
+maxpsffraction = 0.8
+usemask = 'auto-multithresh'
+pbmask = 0.0
+sidelobethreshold = 3.0
+growiterations = 75
+restart = True
+savemodel = 'modelcolumn'
+calcres = True
+calcpsf = True
+parallel = False
+# Threshold for initial cleaning maps
+threshold = '1.5mJy'
+
+
+
+
+
