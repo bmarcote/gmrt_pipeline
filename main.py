@@ -9,12 +9,37 @@ from collections import defaultdict#, namedtuple
 import numpy as np
 from casa import *
 
+from functions import ms
+
+
+
+
+
+
+
+# Import required? (from LTA, FITS)
+
+
+# Create the original MS
+ms.MS() # to include as parameter the path to MS
+
+
+# Create the basic structure of folders where the output of
+# the pipeline will be created.
+
+
+
+
+
+
+
+
+################ OLD STUF #################################
 __file__ = '/jop93_0/Programing/gmrt_pipeline'
 # os.sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 # Little patch for now
 sys.path.append(__file__)
 
-import functions as uf
 # import plotting as pl
 
 

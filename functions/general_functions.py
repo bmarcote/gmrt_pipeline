@@ -4,36 +4,6 @@ import numpy as np
 from casac import casac
 
 
-# Flagging functions
-
-# NOT NEEDED ANY MORE
-
-def flagging(mode='casa', **kwargs):
-    """Run a typical flagging process on the data.
-    Two modes are supported:
-      - casa : run the flagdata command from CASA
-      - aoflagger : run the flagging program AOFlagger
-    Options required for each of the mode can be parsed in as additional parameters.
-    """
-    if mode == 'casa':
-        flagging_casa(**kwargs)
-    elif mode == 'aoflagger':
-        flagging_aoflagger(**kwargs)
-    else:
-        raise ValueError('The specified mode ({}) is not supported'.format(mode))
-
-
-def flagging_aoflagger(**kwargs):
-    """Perform a flagging on the data by running AOFlagger
-    """
-    raise NotImplemented
-
-
-def flagging_casa(**kwargs):
-    """Runs flagdata with all provided commands.
-    """
-
-
 # NOTE I may need to modify eval if for lists (with []) it does not recognize if there are
 # strings without quote marks explicitily set
 
@@ -78,7 +48,12 @@ def evaluate(entry):
         return eval(entry)
 
 
+def build_folder_structure(path):
+    """Builds the full directory structure that is expected for the pipeline.
+    """
+    pass
 
+# This should be completely changed
 def build_required_names(inputs, msinfo):
     """Returns a dictionary with all the files that are going to be created within the
     pipeline. That is:
@@ -126,36 +101,6 @@ def print_log_header(logger, title):
     s += '###  '+title+'\n'
     s += '#'*80 + '\n'
     logger.info(s)
-
-
-
-def get_info_from_ms(msfile):
-    """Returns a dictionary with useful information from the observations in the MS,
-    as the number of channels, number of subbands, rest frequency, integration time,
-    max. baseline and max. resolution of the data.
-    """
-    msinfo = {}
-    ms = casac.ms()
-    ms.open(msfile)
-    msinfo['channels'] = ms.metadata().nchan(0) #ms.getspectralwindowinfo()['0']['NumChan']
-    msinfo['subbands'] = ms.metadata().nspw() #len(ms.getspectralwindowinfo())
-    # CHECK SPEED WITH ONE METHOD AND THE OTHER
-    # msinfo['subbands'] = len(vishead(msfiles['msdata'], mode='get', hdkey='spw_name')[0])
-    msinfo['reffreq'] = 5e9#ms.getspectralwindowinfo()[str(msinfo['subbands']//2)]['RefFreq'] # In Hz
-    keys = ms.getscansummary().keys()
-    a_key = 1
-    while str(a_key) not in keys:
-        a_key += 1
-
-    msinfo['inttime'] = ms.getscansummary()[str(a_key)]['0']['IntegrationTime']
-    del a_key
-
-    # Getting the longest baseline
-    msinfo['max_baseline'] = 30000 #au.getBaselineExtrema(msfiles['msdata'])[0] # In meters
-    msinfo['resolution'] = (2.44*(3e8/msinfo['reffreq'])/msinfo['max_baseline'])*180*3600/np.pi # in arcsec
-    msinfo['sources'] = ms.metadata().fieldnames()
-    ms.done()
-    return msinfo
 
 
 

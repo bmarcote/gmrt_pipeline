@@ -17,35 +17,26 @@
 [DEFAULT]
 # Section containing all general parameters that the pipeline may use.
 
-# if a multiple pass experiment then append the pass number to the experiment
-codename = ''
+# Will be used as prefix for all created files.
+projectname = 'test'
 msfile = ''
 
-# refant is a prioritised list of reference antennas
-ref_ant = '25'
+# Choose a reference antenna.
+refant = 'C00'
 
-# plotref is a list of antennas, baselines to which will be plotted.
-#plotref = EF
-
-# bpass is a list of sources for bandpass calibration
-bpass = None
+# List of sources to be used for bandpass and amplitude calibration
+ampcalibrator = None
 
 # phaseref and target must be set if phase referencing. Each source in target
 # list will be phase calibrated by the corresponding source in phaseref list.
 phaseref = None
 target = None
 
-# sources to consider. defaults to all sources in the SU table.
-sources = None
-
 # spw to keep after split. Will be used also for flagging
 spw = ''
-
 timerange = ''
 
 # directories default to $IN/<experiment>, $OUT/<experiment>,
-# $PIPEFITS/<experiment>
-indir = None #'/jop21_2/reynolds/evnpipe/test/fits/'
 outdir = None # '/jop21_2/reynolds/evnpipe/test/out/'
 
 # sciter is the no of iterations of selfcal - defaults to 2 (0 is a valid
@@ -53,10 +44,8 @@ outdir = None # '/jop21_2/reynolds/evnpipe/test/out/'
 pcycles = 5
 apcycles = 2
 
-
 # Solint to use during the first self calibration cycle, in min
 solint = 10
-
 
 # doplot defaults to 1
 doplot = True
@@ -67,13 +56,26 @@ logger = '%(outdir)s/pipeline.log'
 # Something about cores and casa running?
 
 
+
+[import_lta]
+
+listscan = './listscan'
+gvfits = '.gvfits'
+ltafile = ''
+
+
+[import_fits]
+
+fitsfile = ''
+
+
 [flagging]
 
 doclip = True
 dotfcrop = True
 dorflag = True
 doextend = True
-doaoflagger = True
+doaoflagger = False
 
 
 [flag_clip]
@@ -236,6 +238,7 @@ parang = True
 spw = %(spw)s
 timerange = %(timerange)s
 datacolumn = 'corrected'
+width = 10
 
 
 [tclean]
