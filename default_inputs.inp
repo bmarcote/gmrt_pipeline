@@ -21,6 +21,8 @@
 projectname = 'test'
 msfile = ''
 
+task = [inspect, plot, flagging, calibration]
+
 # Choose a reference antenna.
 refant = 'C00'
 
@@ -33,7 +35,14 @@ phaseref = None
 target = None
 
 # spw to keep after split. Will be used also for flagging
-spw = ''
+# Can be specifed in CASA format (0:500~900 to pick subband #0 chann 500--900)
+# Or as a float f. Then it will take *:{f*n_chan}~{(1-f)*n_chan}.
+# That is, if f=0.1 in a 2048-channel dataset it will be equivalent to:
+#    *:205~1843
+spw_flagging = 0.05
+spw_gaincal = 0.1
+spw_good = ''
+
 timerange = ''
 
 # directories default to $IN/<experiment>, $OUT/<experiment>,

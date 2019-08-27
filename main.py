@@ -28,6 +28,7 @@ ms.MS() # to include as parameter the path to MS
 # the pipeline will be created.
 
 
+# I would need to process the spw syntax if given as a float!
 
 
 

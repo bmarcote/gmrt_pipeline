@@ -57,19 +57,14 @@ When CAGA runs, it will create several files and directories. Whereas the final 
 
 The user can specify all steps that wish to perform via the input file. Here we specify the standard ones that are typically conducted in a GMRT data reduction and thus are performed by default.
 
-### Import data
-
-[IF NEEDED]
-- From lta files.
-- From FITS files.
-
-
-### Inspecting the data
-
-- Create a listobs.txt file with the output of `listobs()` from CASA.
-- Produce the plot of the array configuration.
-- Produce plots of the raw data from the amplitude calibrators.
-
+- Import data [IF NEEDED]
+    - From lta files.
+    - From FITS files.
+- Inspecting the data
+    - Create a listobs.txt file with the output of `listobs()` from CASA.
+    - Produce the plot of the array configuration.
+    - Produce plots of the raw data from the amplitude calibrators.
+- Plotting the raw data (jplotter)
 
 
 

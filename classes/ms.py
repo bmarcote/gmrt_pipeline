@@ -36,6 +36,10 @@ class Ms(object):
         """Returns the path to the MS set."""
         return self._path
 
+    @path.setter
+    def path(self, newpath):
+        self._path = newpath
+
 
     @property
     def msname(self):
@@ -49,7 +53,30 @@ class Ms(object):
 
     @property
     def antennas(self):
-        pass
+        raise NotImplemented
+
+
+    def has_antenna(self, antenna):
+        return antenna in self.antennas
+
+
+    @property
+    def sources(self):
+        return self._sources
+
+
+    def has_source(self, source):
+        return source in self.sources
+
+
+    @property
+    def channels(self):
+        return self._channels
+
+
+    @property
+    def subbands(self):
+        return self._subbands
 
 
     def get_metadata(self):
