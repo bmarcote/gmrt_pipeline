@@ -1,5 +1,5 @@
-# GAPA - uGMRT CASA Pipeline Analysis
-# CAGA - CASA Analysis of GMRT datA
+# uGMRT CASA Pipeline Analysis
+# CASA Analysis of GMRT datA
 
 
 Pipeline to analyze data from the Giant Metrewavelength Radio Telescope (GMRT). It is particularly focused on the analysis of data from the new backend (upgraded-GMRT or uGMRT).
@@ -8,7 +8,7 @@ Pipeline to analyze data from the Giant Metrewavelength Radio Telescope (GMRT). 
 
 <!-- ## Acknowledgements -->
 
-This code is partially based on the pipelines developed independently by Ruta (PUT LINK) and Ishwara Chandra. It also gets the structure inspiration from the EVN Pipeline (ADD LINK).
+This code is based on the pipelines developed independently by Ruta (https://github.com/ruta-k/uGMRT-pipeline) and Ishwara Chandra.
 
 
 ##  Motivation for CAGA
@@ -28,6 +28,9 @@ casa -c CAGA.py -i template.inp
 This input file can override any parameter used in any CASA task, providing full flexibility to the user. However, if not specified, CAGA would assume the default parameters that are (at the current moment) thought to optimize GMRT data reduction.
 
 
+*THIS INFORMATION MAY BE OUT OF DATE*
+
+
 ## Files and folders that will be created in the working directory
 
 When CAGA runs, it will create several files and directories. Whereas the final number fo files created depends on the steps specified in the input file, the general idea is that the following directories will appear:
@@ -43,14 +46,11 @@ When CAGA runs, it will create several files and directories. Whereas the final 
 
 - `main.py`: The main script that is executed when the Pipeline is launched in CASA.
 - `template.inp`: Template of an input file. Copy to your working directory before running CAGA.
-- `functions/`
-    - `general_functions.py`.
-    - `plotting_functions.py`
-    - `flagging_functions.py`
-    -  *Different calibration functions.*
-- `classes/`
+- `src/`
     - `ms.py`: Defines a MS class that would directly include all necessary information CAGA needs.
-    - `sources.py`: Defines all sources that will be considered in the analysis and the intent of each of them.
+    - `general_functions.py`.
+    - `casa_functions.py`
+    - `flagging_functions.py`
 
 
 ## Calibration steps performed in CAGA
@@ -65,12 +65,4 @@ The user can specify all steps that wish to perform via the input file. Here we 
     - Produce the plot of the array configuration.
     - Produce plots of the raw data from the amplitude calibrators.
 - Plotting the raw data (jplotter)
-
-
-
-
-## Random ideas
-
-- Forget about tmask, write a parameter that is a list of all tasks to conduct. Same as in NDPPP.
-- Add a first step to be able to run from lta files.
 
