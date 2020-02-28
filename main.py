@@ -12,9 +12,9 @@ import numpy as np
 import casa
 
 
-# Find the path of the pipeline and add it to the current path
-this_path = os.path.abspath(os.path.dirname(sys.argv[-2]))
-sys.path.append(this_path+'/' if this_path[-1] != '/' else this_path)
+# Find the path of the pipeline and add it to the current path. There should only be one
+this_file_argv = [argv for argv in sys.argv if 'main.py' in argv][0]
+this_path = os.path.abspath(os.path.dirname(this_file_argv))
 
 from src import ms
 from src import casa_functions as cf

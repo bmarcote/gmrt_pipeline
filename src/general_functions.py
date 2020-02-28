@@ -7,7 +7,7 @@
 
 import os
 import casa_functions as cf
-import flaggging as flag
+import flagging as flag
 
 
 class Steps(object):
@@ -22,13 +22,14 @@ class Steps(object):
     def __init__(self):
         self._step_functions = {'inspect': [cf.data_inspection],
                         'get_caltables': [cf.get_existing_caltables],
-                        'initial_flagging': [flag.bad_antennas, flag.cal_flagging],
+                        # 'initial_flagging': [flag.bad_antennas, flag.cal_flagging],
+                        'initial_flagging': [flag.cal_flagging],
                         'calibration': [cf.ionospheric_calibration, cf.initial_calibration],
                         'bandpass': [cf.bandpass_calibration],
                         'calibration': [cf.second_calibration],
                         'fluxscale': [cf.fluxscale_calibration],
                         'applycal': [cf.apply_calibration],
-                        'postcal_flagging': [cf.target_flagging],
+                        'postcal_flagging': [flag.target_flagging],
                         'split': [cf.split_sources],
                         'clean': [cf.imaging],
                         'selfcal': [cf.selfcalibration_loop],
@@ -123,6 +124,9 @@ def evaluate(entry):
     elif entry == '.':
         return '.'
     else:
+        if len(entry) == 0:
+            return entry
+
         if entry[0] == "'" and entry[-1] == "'":
             return str(entry[1:-1])
 

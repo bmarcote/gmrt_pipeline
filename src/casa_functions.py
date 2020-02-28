@@ -10,7 +10,9 @@
 # @Last Modified time: 2018-11-07
 
 import os
+import sys
 import shutil
+import subprocess
 import casa
 import ms
 import numpy as np
@@ -364,18 +366,27 @@ def wscleaning(splitdata, params, imagename):
     if os.path.exists(imagename+'*'):
         shutil.rmtree(imagename+'*')
 
-    try:
-        options = '-name {}'.format(imagename)
-        for a_key in params['wsclean']:
-            options += ' -{} {}'.format(a_key, params['wsclean'][a_key])
+    # try:
+    options = '-name {}'.format(imagename)
+    if isinstance(params['wsclean']['size'], float):
+        params['wsclean']['size'] = '{0} {0}'.format(params['wsclean']['size'])
+    for a_key in params['wsclean']:
+        options += ' -{} {}'.format(a_key, params['wsclean'][a_key])
 
-        proc = subprocess.Popen('wsclean {} {}'.format(options, splitdata.msfile), shell=True,
-                                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    print('Executing wsclean {} {}'.format(options, splitdata.msfile))
+    proc = subprocess.Popen('wsclean {} {}'.format(options, splitdata.msfile), shell=True,
+                            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-        with open('{}/log/wsclean.log'.format(params['DEFAULT']['outdir']), 'a') as wsclean_logfile:
-            wsclean_logfile.write(proc.communicate()[0].decode('utf-8'))
-    except:
-        raise NotImplemented('WSClean program not found.')
+    with open('output-wsclean.log', 'a+') as wsclean_logfile:
+        while proc.poll() is None:
+            out = proc.stdout.read().decode('utf-8')
+            out = proc.stdout.read().decode()
+            sys.stdout.write(out)
+            wsclean_logfile.write(out)
+            sys.stdout.flush()
+
+    # except:
+    #     raise NotImplemented('WSClean program not found.')
 
 
 def imaging(msdata, params):
@@ -383,19 +394,24 @@ def imaging(msdata, params):
     """
     # TODO: to parallelize
     for a_source in msdata.sources:
-        splitfile = "{}/{}/{}.split.ms".format(params['DEFAULT']['outdir'], a_source, a_source)
-        splitdata = ms.Ms(splitfile, a_source)
-        imagename = splitdata.msfile.replace('.ms', '.{}'.format(params['DEFAULT']['useclean']))
-        if splitdata.exists:
-            os.chdir("{}/{}/".format(params['DEFAULT']['outdir'], a_source))
-            if params['DEFAULT']['useclean'] == 'tclean':
-                cleaning(splitdata, params, imagename)
-            elif params['DEFAULT']['useclean'] == 'wsclean':
-                wscleaning(splitdata, params, imagename)
+        # splitfile = "{}/{}/{}.split.ms".format(params['DEFAULT']['outdir'], a_source, a_source)
+        splitfile = "{}.split.ms".format(a_source)
+        os.chdir("{}/{}/".format(params['DEFAULT']['outdir'], a_source))
+        try:
+            splitdata = ms.Ms(splitfile, a_source)
+            imagename = splitdata.msfile.replace('.ms', '.{}'.format(params['DEFAULT']['useclean']))
+            if splitdata.exists:
+                if params['DEFAULT']['useclean'] == 'tclean':
+                    cleaning(splitdata, params, imagename)
+                elif params['DEFAULT']['useclean'] == 'wsclean':
+                    wscleaning(splitdata, params, imagename)
+                else:
+                    raise ValueError('Value {} in useclean not known.'.format(params['DEFAULT']['useclean']))
             else:
-                raise ValueError('Value {} in useclean not known.'.format(params['DEFAULT']['useclean']))
-        else:
-            print('WARNING: {} does not exist. Images not produced.'.format(splitdata.msfile))
+                print('WARNING: {} does not exist. Images not produced.'.format(splitdata.msfile))
+
+        finally:
+            os.chdir("../")
 
 
 def selfcalibration(splitdata, params, extname, calmode, solint):
@@ -425,28 +441,32 @@ def selfcalibration_loop(msdata, params):
     from the original SPLIT dataset.
     """
     for a_target in params['DEFAULT']['target']:
-        splitfile = "{}/{}/{}.split.ms".format(params['DEFAULT']['outdir'], a_target, a_target)
-        splitdata = ms.Ms(splitfile, a_target) # Also checks it exists
-        imagename = splitdata.msfile.replace('.ms', '.{}'.format(params['DEFAULT']['useclean']))
-        if splitdata.exists:
-            os.chdir("{}/{}/".format(params['DEFAULT']['outdir'], a_target))
-            # Check the rms in the residuals to update
-            for pcycle in range(params['DEFAULT']['pcycles']):
-                # if params['DEFAULT']['useclean'] is 'tclean':
-                    # params['tclean']['threshold']
-                    # TODO: This needs to be modified!!
+        splitfile = "{}.split.ms".format(a_target)
+        os.chdir("{}/{}/".format(params['DEFAULT']['outdir'], a_target))
+        try:
+            splitdata = ms.Ms(splitfile, a_target) # Also checks it exists
+            imagename = splitdata.msfile.replace('.ms', '.{}'.format(params['DEFAULT']['useclean']))
+            if splitdata.exists:
+                # Check the rms in the residuals to update
+                for pcycle in range(params['DEFAULT']['pcycles']):
+                    # if params['DEFAULT']['useclean'] is 'tclean':
+                        # params['tclean']['threshold']
+                        # TODO: This needs to be modified!!
+                    selfcalibration(splitdata, params, extname="p{}".format(pcycle+1), calmode='p',
+                                    solint=params['DEFAULT']['solint'].pop(0))
+
+                flag.flagging(msdata, params, flag_calibrators=False, flag_target=True)
+                # Flagging
+                for apcycle in range(params['DEFAULT']['apcycles']):
+                    selfcalibration(splitdata, params, extname="ap{}".format(pcycle+1), calmode='ap',
+                                    solint=params['DEFAULT']['solint'].pop(0))
+                # Last pcal cycle
+                flag.flagging(msdata, params, flag_calibrators=False, flag_target=True)
                 selfcalibration(splitdata, params, extname="p{}".format(pcycle+1), calmode='p',
                                 solint=params['DEFAULT']['solint'].pop(0))
+            else:
+                print('WARNING: {} does not exist. Images not produced.'.format(splitdata.msfile))
 
-            flag.flagging(msdata, params, flag_calibrators=False, flag_target=True)
-            # Flagging
-            for apcycle in range(params['DEFAULT']['apcycles']):
-                selfcalibration(splitdata, params, extname="ap{}".format(pcycle+1), calmode='ap',
-                                solint=params['DEFAULT']['solint'].pop(0))
-            # Last pcal cycle
-            flag.flagging(msdata, params, flag_calibrators=False, flag_target=True)
-            selfcalibration(splitdata, params, extname="p{}".format(pcycle+1), calmode='p',
-                            solint=params['DEFAULT']['solint'].pop(0))
-        else:
-            print('WARNING: {} does not exist. Images not produced.'.format(splitdata.msfile))
+        finally:
+            os.chdir("../")
 
