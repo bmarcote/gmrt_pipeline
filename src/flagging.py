@@ -26,7 +26,7 @@ def bad_antennas(msdata, params):
     """
     print('WARNING: Flagging.bad_antennas has not been implemented yet.')
     raise NotImplemented('Flagging.bad_antennas has not been implemented yet.')
-    # thevalues = np.zeros((len(msfile.antennas), msfile.num_corr))
+    thevalues = np.zeros((len(msfile.antennas), msfile.num_corr))
     # for an_antenna in msfile.antennas:
     #     for a_corr in range(msfile.num_corr+1):
     #         a_stokes = generic.stokes(a_corr)
@@ -130,7 +130,7 @@ def flagging(msdata, params, flag_calibrators=True, flag_target=False):
             print('Running AOFlagger')
             proc = subprocess.Popen('aoflagger -strategy {} {}'.format(params['flag_aoflagger']['rfi_strategy'],
                           msdata.msfile), shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            
+
             while proc.poll() is None:
                 out = proc.stdout.read().decode('utf-8')
                 sys.stdout.write(out)
