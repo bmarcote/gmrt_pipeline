@@ -168,13 +168,13 @@ def get_existing_caltables(msdata, params):
 def ionospheric_calibration(msdata, params):
     """Performs ionospheric corrections
     """
-    tec_maps.create(vis=msdata.msfile, doplot=False, imname='ionospheric.maps')
+    tec_maps.create(vis=msdata.msfile, doplot=True, imname=caltablename('cal_ionos_map', params))
     # Removes the previous calibration table if it exists
     if os.path.exists(caltablename('cal_ionos', params)):
         shutil.rmtree(caltablename('cal_ionos', params))
 
-    gencal(vis=msdata.msfile, caltable=caltable('cal_ionos', params), caltype='tecim',
-           infile='ionospheric.maps.IGS_TEC.im')
+    casa.gencal(vis=msdata.msfile, caltable=caltablename('cal_ionos', params), caltype='tecim',
+           infile="{}.IGS_TEC.im".format(caltablename('cal_ionos_map', params)))
 
     if caltablename('cal_ionos', params) not in msdata.calibration_tables:
         msdata.add_calibration_table(caltablename('cal_ionos', params))
@@ -375,15 +375,15 @@ def wscleaning(splitdata, params, imagename):
 
     print('Executing wsclean {} {}'.format(options, splitdata.msfile))
     proc = subprocess.Popen('wsclean {} {}'.format(options, splitdata.msfile), shell=True,
-                            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                            stdout=subprocess.PIPE, stderr=subprocess.PIPE, bufsize=10)
 
-    with open('output-wsclean.log', 'a+') as wsclean_logfile:
-        while proc.poll() is None:
-            out = proc.stdout.read().decode('utf-8')
-            out = proc.stdout.read().decode()
-            sys.stdout.write(out)
-            wsclean_logfile.write(out)
-            sys.stdout.flush()
+    # with open("{}/log/output-wsclean.log".format(params['DEFAULT']['outdir']), 'a+') as wsclean_logfile:
+    while proc.poll() is None:
+        # out = proc.stdout.read().decode('utf-8')
+        out = proc.stdout.readline()
+        sys.stdout.write(out)
+        # wsclean_logfile.write(out)
+        sys.stdout.flush()
 
     # except:
     #     raise NotImplemented('WSClean program not found.')
@@ -394,9 +394,9 @@ def imaging(msdata, params):
     """
     # TODO: to parallelize
     for a_source in msdata.sources:
-        # splitfile = "{}/{}/{}.split.ms".format(params['DEFAULT']['outdir'], a_source, a_source)
-        splitfile = "{}.split.ms".format(a_source)
-        os.chdir("{}/{}/".format(params['DEFAULT']['outdir'], a_source))
+        splitfile = "{}/{}/{}.split.ms".format(params['DEFAULT']['outdir'], a_source, a_source)
+        # splitfile = "{}.split.ms".format(a_source)
+        # os.chdir("{}/{}/".format(params['DEFAULT']['outdir'], a_source))
         try:
             splitdata = ms.Ms(splitfile, a_source)
             imagename = splitdata.msfile.replace('.ms', '.{}'.format(params['DEFAULT']['useclean']))
@@ -411,7 +411,8 @@ def imaging(msdata, params):
                 print('WARNING: {} does not exist. Images not produced.'.format(splitdata.msfile))
 
         finally:
-            os.chdir("../")
+            # os.chdir("../")
+            pass
 
 
 def selfcalibration(splitdata, params, extname, calmode, solint):
@@ -441,11 +442,15 @@ def selfcalibration_loop(msdata, params):
     from the original SPLIT dataset.
     """
     for a_target in params['DEFAULT']['target']:
-        splitfile = "{}.split.ms".format(a_target)
-        os.chdir("{}/{}/".format(params['DEFAULT']['outdir'], a_target))
+        # splitfile = "{}.split.ms".format(a_target)
+        splitfile = "{}/{}/{}.split.ms".format(params['DEFAULT']['outdir'], a_target, a_target)
+        # os.chdir("{}/{}/".format(params['DEFAULT']['outdir'], a_target))
         try:
             splitdata = ms.Ms(splitfile, a_target) # Also checks it exists
             imagename = splitdata.msfile.replace('.ms', '.{}'.format(params['DEFAULT']['useclean']))
+            # As working on the SPLITS, the spw information is not relevant (and true) anymore
+            params['gaincal_G'].pop('spw', None)
+            params['applycal'].pop('spw', None)
             if splitdata.exists:
                 # Check the rms in the residuals to update
                 for pcycle in range(params['DEFAULT']['pcycles']):
@@ -458,15 +463,16 @@ def selfcalibration_loop(msdata, params):
                 flag.flagging(msdata, params, flag_calibrators=False, flag_target=True)
                 # Flagging
                 for apcycle in range(params['DEFAULT']['apcycles']):
-                    selfcalibration(splitdata, params, extname="ap{}".format(pcycle+1), calmode='ap',
+                    selfcalibration(splitdata, params, extname="ap{}".format(apcycle+1), calmode='ap',
                                     solint=params['DEFAULT']['solint'].pop(0))
                 # Last pcal cycle
                 flag.flagging(msdata, params, flag_calibrators=False, flag_target=True)
-                selfcalibration(splitdata, params, extname="p{}".format(pcycle+1), calmode='p',
+                selfcalibration(splitdata, params, extname="final", calmode='p',
                                 solint=params['DEFAULT']['solint'].pop(0))
             else:
                 print('WARNING: {} does not exist. Images not produced.'.format(splitdata.msfile))
 
         finally:
-            os.chdir("../")
+            # os.chdir("../")
+            pass
 

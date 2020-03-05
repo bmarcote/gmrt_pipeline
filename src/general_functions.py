@@ -24,7 +24,10 @@ class Steps(object):
                         'get_caltables': [cf.get_existing_caltables],
                         # 'initial_flagging': [flag.bad_antennas, flag.cal_flagging],
                         'initial_flagging': [flag.cal_flagging],
-                        'calibration': [cf.ionospheric_calibration, cf.initial_calibration],
+                        # TODO: ionospheric calibration fails reporting: Error in Calibarter::specifycal.
+                        # No idea why... Just following values for VLA?
+                        # 'calibration': [cf.ionospheric_calibration, cf.initial_calibration],
+                        'calibration': [cf.initial_calibration],
                         'bandpass': [cf.bandpass_calibration],
                         'calibration': [cf.second_calibration],
                         'fluxscale': [cf.fluxscale_calibration],
