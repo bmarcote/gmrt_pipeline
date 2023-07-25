@@ -1,3 +1,7 @@
+
+**Note that this repository is froozen. All the goals here were integrated into the [CASA Pipeline (CAPI)](https://github.com/bmarcote/casa_pipeline), right now (Summer 2023) under heavy development. After the code is finished for VLBI, it will get the GMRT part integrated too, within the same framework.**
+
+
 # uGMRT CASA Pipeline Analysis
 # CASA Analysis of GMRT datA
 
