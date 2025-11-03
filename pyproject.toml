@@ -1,6 +1,15 @@
+[tool.pytest.ini_options]
+pythonpath = "src"
+
 [build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
+requires = ["setuptools>=42", "wheel", "Cython"]
+build-backend = "setuptools.build_meta"
+
+#[tool.setuptools.package-data]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
 
 [project]
 name = "capture-casa6"
@@ -19,10 +28,15 @@ classifiers = [
 dependencies = [
     "casatasks",
     "numpy",
-    "matplotlib",
-    "tomli>=2.0.0",
+    "matplotlib"
 ]
 
 [project.urls]
 "Homepage" = "https://github.com/ruta-k/CAPTURE-CASA6"
 "Bug Tracker" = "https://github.com/ruta-k/CAPTURE-CASA6/issues"
+
+
+[project.scripts]
+gmrtcapture = "capture.main:main"
+
+

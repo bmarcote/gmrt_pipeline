@@ -2,6 +2,7 @@
 
 import logging
 import os
+import tomllib
 from datetime import datetime
 import casatasks as cts
 
@@ -38,9 +39,8 @@ class Pipeline:
 
     def load_config(self, config_file):
         """Load configuration from TOML file."""
-        import tomli
         with open(config_file, 'rb') as f:
-            config = tomli.load(f)
+            config = tomllib.load(f)
         
         # Input settings
         self.fromlta = config['input']['from_lta']

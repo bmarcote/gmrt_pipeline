@@ -2,7 +2,9 @@
 
 import os
 import logging
-from casatasks import ms, msmd, visstat, flagdata
+from casatasks import flagdata, visstat
+from casatools import ms
+from casatools import msmetadata as msmd
 
 def vislistobs(msfile):
     """Write verbose output of listobs task."""
