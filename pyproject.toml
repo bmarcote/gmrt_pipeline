@@ -1,0 +1,28 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "capture-casa6"
+version = "1.0"
+authors = [
+    { name="Ruta Kale", email="ruta@ncra.tifr.res.in" },
+]
+description = "CAsa Pipeline-cum-Toolkit for Upgraded GMRT data REduction"
+readme = "README.md"
+requires-python = ">=3.7"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "casatasks",
+    "numpy",
+    "matplotlib",
+    "tomli>=2.0.0",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/ruta-k/CAPTURE-CASA6"
+"Bug Tracker" = "https://github.com/ruta-k/CAPTURE-CASA6/issues"

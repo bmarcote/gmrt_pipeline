@@ -1,0 +1,57 @@
+# CAPTURE Pipeline Configuration
+
+[input]
+from_lta = false  # Start processing from LTA file
+from_fits = true  # Start processing from FITS file
+from_multisrc_ms = false  # Start from multi-source MS file
+lta_file = ""  # Path to LTA file
+gvbin_path = ["/path/to/listscan", "/path/to/gvfits"]  # Paths to GMRT utilities
+fits_file = "test.fits"  # Input FITS file
+ms_filename = ""  # Input/output MS filename
+
+[output]
+split_filename = ""  # Output split MS filename
+split_avg_filename = ""  # Output averaged split MS filename
+
+[flagging]
+find_bad_ants = true  # Search for bad antennas
+flag_bad_ants = true  # Flag detected bad antennas
+find_bad_chans = true  # Search for bad channels
+flag_bad_freq = true  # Flag known RFI-prone frequencies
+flag_init = true  # Perform initial flagging
+flag_split_file = true  # Flag after splitting
+flag_avg = true  # Flag after averaging
+
+[calibration]
+do_init_cal = true  # Perform initial calibration
+do_flag = true  # Flag after initial calibration
+redo_cal = true  # Redo calibration
+quack_interval = 8.0  # Time interval for quack flagging
+ref_ant = "C00"  # Reference antenna
+clip_flux_cal = [-50.0, 50.0]  # Clip range for flux calibrator
+clip_phase_cal = [-50.0, 50.0]  # Clip range for phase calibrator
+clip_target = [-50.0, 50.0]  # Clip range for target
+clip_resid = [-50.0, 50.0]  # Clip range for residuals
+uvr_acal = ""  # UV range for amplitude calibration
+uvr_ascal = ""  # UV range for amplitude-phase calibration
+
+[imaging]
+make_dirty = true  # Make dirty image
+do_selfcal = true  # Perform self-calibration
+do_subband_selfcal = true  # Perform self-calibration per subband
+chan_avg = 40  # Channel averaging factor
+subband_chan = 480  # Channels per subband
+cell_size = "1arcsec"  # Image pixel size
+image_size = 5000  # Image size in pixels
+clean_robust = 0.0  # Robust parameter for clean
+scal_loops = 4  # Number of self-calibration loops
+pcal_loops = 2  # Number of phase calibration loops
+mjy_threshold = 0.0  # Clean threshold in mJy
+scal_solints = ["inf", "120s", "60s", "30s"]  # Solution intervals for self-cal
+niter_start = 1000  # Initial number of clean iterations
+use_nterms = 2  # Number of Taylor terms
+nwproj_pl = 128  # Number of w-projection planes
+
+[processing]
+target = true  # Process target source
+use_tclean = true  # Use tclean instead of clean
