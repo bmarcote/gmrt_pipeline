@@ -2,23 +2,25 @@
 
 import os
 import logging
+from pathlib import Path
 from casatasks import flagdata, visstat
 from casatools import ms
-from casatools import msmetadata as msmd
+from casatools import msmetadata
+from contextlib import contextmanager
 
 
-def msmd_wrapper(func):
-    """Decorator to handle msmd.open and msmd.done operations."""
-    def wrapper(msfile, *args, **kwargs):
-        try:
-            openmsfile = msmd(msfile)
-            openmsfile.open(msfile)
-            result = func(msfile, *args, **kwargs)
-        finally:
-            openmsfile.close()
-        return result
-    return wrapper
-
+@contextmanager
+def msmd(msfile: str | Path, nomodify: bool = True, lock: str = 'default'):
+    """Wrapper function that saves the user to do the shit thing that CASA developers coded,
+    of loading the ms() then open, and not being save of closing it."""
+    try:
+        msobj = msmetadata()
+        msobj.open(msfile if isinstance(msfile, str) else str(msfile), nomodify=nomodify,
+                     lockoptions={'option': lock})
+        yield msobj
+    finally:
+        msobj.done()
+        msobj.close()
 
 def vislistobs(msfile):
     """Write verbose output of listobs task."""
@@ -31,49 +33,50 @@ def vislistobs(msfile):
         logging.info("Listobs output not saved to .list file. Check CASA log.")
     return outr
 
-@msmd_wrapper
 def getpols(msfile):
     """Get number of polarizations in file."""
-    polid = msmd.ncorrforpol(0)
+    with msmd(msfile) as msmdfile:
+        polid = msmdfile.ncorrforpol(0)
+
     return polid
 
-@msmd_wrapper
 def getfields(msfile):
     """Get list of field names in MS."""
-    fieldnames = msmd.fieldnames()
+    with msmd(msfile) as msmdfile:
+        fieldnames = msmdfile.fieldnames()
     return fieldnames
 
-@msmd_wrapper
 def getscans(msfile, mysrc):
     """Get list of scan numbers for specified source."""
-    return msmd.scansforfield(mysrc).tolist()
+    with msmd(msfile) as msmdfile:
+        return msmdfile.scansforfield(mysrc).tolist()
 
-@msmd_wrapper
 def getantlist(myvis, scanno):
     """Get list of antennas for given scan."""
-    antenna_name = msmd.antennasforscan(scanno)
-    antlist = []
-    for i in range(0, len(antenna_name)):
-        antlist.append(msmd.antennanames(antenna_name[i])[0])
+    with msmd(myvis) as msmdfile:
+        antenna_name = msmdfile.antennasforscan(scanno)
+        antlist = []
+        for i in range(0, len(antenna_name)):
+            antlist.append(msmdfile.antennanames(antenna_name[i])[0])
     return antlist
 
-@msmd_wrapper
 def getnchan(msfile):
     """Get number of channels."""
-    nchan = msmd.nchan(0)
+    with msmd(msfile) as msmdfile:
+        nchan = msmdfile.nchan(0)
     return nchan
 
-@msmd_wrapper
 def getbw(msfile):
     """Get bandwidth."""
-    bw = msmd.bandwidths(0)
+    with msmd(msfile) as msmdfile:
+        bw = msmdfile.bandwidths(0)
     return bw
 
-@msmd_wrapper
 def freq_info(ms_file):
     """Get frequency information."""
-    sw = 0
-    freq = msmd.chanfreqs(sw)
+    with msmd(ms_file) as msmdfile:
+        sw = 0
+        freq = msmdfile.chanfreqs(sw)
     return freq
 
 def getbandcut(inpmsfile):
