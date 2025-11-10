@@ -7,8 +7,6 @@ import argparse
 import logging
 from pathlib import Path
 
-from .core.pipeline import Pipeline
-
 def setup_logging(debug=False):
     """Set up logging configuration."""
     level = logging.DEBUG if debug else logging.INFO
@@ -18,7 +16,7 @@ def setup_logging(debug=False):
         datefmt='%Y-%m-%d %H:%M:%S'
     )
 
-def parse_args() -> dict:
+def parse_args() -> argparse.Namespace:
     """Parse command line arguments."""
     parser = argparse.ArgumentParser(
         description='CAPTURE: CAsa Pipeline-cum-Toolkit for Upgraded GMRT data REduction',
@@ -31,7 +29,7 @@ def parse_args() -> dict:
     return parser.parse_args()
 
 
-def show_version():
+def version():
     """Display version information."""
     from . import __version__
     print(f"CAPTURE Pipeline version {__version__}")
@@ -58,54 +56,44 @@ def run_pipeline(input_file: str, working_dir: str | None = None, debug: bool = 
     """Main entry point for the pipeline.
     """
     if show_version:
-        show_version()
+        version()
     
     setup_logging(debug)
-    try:
-        os.chdir(working_dir)
-        logging.info(f"Changed working directory to: {working_dir}")
-    except OSError as e:
-        logging.error(f"Failed to change working directory: {e}")
-        sys.exit(1)
-    
+    if working_dir:
+        try:
+            os.chdir(working_dir)
+            logging.info(f"Changed working directory to: {working_dir}")
+        except OSError as e:
+            logging.error(f"Failed to change working directory: {e}")
+            sys.exit(1)
+        
     input_path = validate_config(input_file)
     logging.info(f"Using configuration file: {input_path}")
     
     try:
-        # Initialize and run pipeline
-        pipeline = Pipeline(input_path)
+        # Run Snakemake workflow
+        import snakemake
         
-        # Process data based on configuration
-        if pipeline.fromlta:
-            pipeline.process_lta()
-        if pipeline.fromfits:
-            pipeline.process_fits()
-        if pipeline.frommultisrcms:
-            if not pipeline.msfilename:
-                logging.error("MS filename not provided in configuration")
-                sys.exit(1)
-            if not os.path.isdir(pipeline.msfilename):
-                logging.error(f"MS file not found: {pipeline.msfilename}")
-                sys.exit(1)
+        # Find Snakefile location
+        snakefile_path = Path(__file__).parent.parent.parent / "Snakefile"
         
-        # Perform calibration and imaging steps based on configuration
-        if pipeline.flaginit:
-            logging.info("Performing initial flagging")
-            # Add flagging steps
+        logging.info(f"Running Snakemake workflow from: {snakefile_path}")
         
-        if pipeline.doinitcal:
-            logging.info("Performing initial calibration")
-            # Add calibration steps
+        # Run Snakemake
+        success = snakemake.snakemake(
+            snakefile=str(snakefile_path),
+            configfiles=[str(input_path)],
+            cores=1,
+            printshellcmds=True,
+            dryrun=False,
+            quiet=False
+        )
         
-        if pipeline.makedirty:
-            logging.info("Creating dirty image")
-            # Add imaging steps
-        
-        if pipeline.doselfcal:
-            logging.info("Performing self-calibration")
-            # Add self-calibration steps
-        
-        logging.info("Pipeline processing completed successfully")
+        if success:
+            logging.info("Pipeline processing completed successfully")
+        else:
+            logging.error("Pipeline failed")
+            sys.exit(1)
         
     except Exception as e:
         logging.error(f"Pipeline failed: {e}")

@@ -8,6 +8,9 @@ import casatasks as cts
 
 from ..utils.casa_tools import vislistobs
 
+from ..utils.pipeline_state import PipelineState
+from .steps import PIPELINE_STEPS, PipelineStep
+
 class Pipeline:
     """Main CAPTURE pipeline class."""
     
@@ -15,6 +18,7 @@ class Pipeline:
         """Initialize pipeline with configuration."""
         self.setup_logging()
         self.load_config(config_file)
+        self.state = PipelineState()
         
     def setup_logging(self):
         """Set up logging configuration."""
@@ -98,6 +102,44 @@ class Pipeline:
         self.target = config['processing']['target']
         self.usetclean = config['processing']['use_tclean']
 
+    def run_step(self, step: str | PipelineStep) -> bool:
+        """Run a pipeline step if needed."""
+        if isinstance(step, str):
+            step = PIPELINE_STEPS[step]
+            
+        # Get actual file paths
+        inputs = step.get_input_paths(**self.__dict__)
+        outputs = step.get_output_paths(**self.__dict__)
+        
+        # Check if step needs to be run
+        if not self.state.check_step_needed(step.name, inputs, outputs):
+            logging.info(f"Skipping step {step.name} - outputs up to date")
+            return False
+            
+        logging.info(f"Running step {step.name}")
+        step.function(self)
+        
+        # Register outputs
+        self.state.mark_step_complete(step.name, outputs)
+        return True
+
+    def run_pipeline(self):
+        """Run all pipeline steps."""
+        if self.fromlta:
+            self.run_step('lta_to_fits')
+            
+        if self.fromfits:
+            self.run_step('fits_to_ms')
+            
+        if self.flaginit:
+            self.run_step('initial_flagging')
+            
+        if self.doinitcal:
+            self.run_step('initial_calibration')
+            
+        if self.makedirty:
+            self.run_step('make_dirty_image')
+    
     def process_lta(self):
         """Process LTA file if specified."""
         if not self.fromlta:

@@ -28,7 +28,9 @@ classifiers = [
 dependencies = [
     "casatasks",
     "numpy",
-    "matplotlib"
+    "matplotlib",
+    "snakemake>=7.0.0",
+    "snakemake-executor-plugins"
 ]
 
 [project.urls]

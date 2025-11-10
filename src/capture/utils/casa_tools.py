@@ -6,6 +6,20 @@ from casatasks import flagdata, visstat
 from casatools import ms
 from casatools import msmetadata as msmd
 
+
+def msmd_wrapper(func):
+    """Decorator to handle msmd.open and msmd.done operations."""
+    def wrapper(msfile, *args, **kwargs):
+        try:
+            openmsfile = msmd(msfile)
+            openmsfile.open(msfile)
+            result = func(msfile, *args, **kwargs)
+        finally:
+            openmsfile.close()
+        return result
+    return wrapper
+
+
 def vislistobs(msfile):
     """Write verbose output of listobs task."""
     ms.open(msfile)
@@ -17,57 +31,49 @@ def vislistobs(msfile):
         logging.info("Listobs output not saved to .list file. Check CASA log.")
     return outr
 
+@msmd_wrapper
 def getpols(msfile):
     """Get number of polarizations in file."""
-    msmd.open(msfile)
     polid = msmd.ncorrforpol(0)
-    msmd.done()
     return polid
 
+@msmd_wrapper
 def getfields(msfile):
     """Get list of field names in MS."""
-    msmd.open(msfile)
     fieldnames = msmd.fieldnames()
-    msmd.done()
     return fieldnames
 
+@msmd_wrapper
 def getscans(msfile, mysrc):
     """Get list of scan numbers for specified source."""
-    msmd.open(msfile)
-    myscan_numbers = msmd.scansforfield(mysrc)
-    myscanlist = myscan_numbers.tolist()
-    msmd.done()
-    return myscanlist
+    return msmd.scansforfield(mysrc).tolist()
 
+@msmd_wrapper
 def getantlist(myvis, scanno):
     """Get list of antennas for given scan."""
-    msmd.open(myvis)
     antenna_name = msmd.antennasforscan(scanno)
     antlist = []
     for i in range(0, len(antenna_name)):
         antlist.append(msmd.antennanames(antenna_name[i])[0])
     return antlist
 
+@msmd_wrapper
 def getnchan(msfile):
     """Get number of channels."""
-    msmd.open(msfile)
     nchan = msmd.nchan(0)
-    msmd.done()
     return nchan
 
+@msmd_wrapper
 def getbw(msfile):
     """Get bandwidth."""
-    msmd.open(msfile)
     bw = msmd.bandwidths(0)
-    msmd.done()
     return bw
 
+@msmd_wrapper
 def freq_info(ms_file):
     """Get frequency information."""
     sw = 0
-    msmd.open(ms_file)
     freq = msmd.chanfreqs(sw)
-    msmd.done()
     return freq
 
 def getbandcut(inpmsfile):
